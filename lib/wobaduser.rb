@@ -11,4 +11,8 @@ module Wobaduser
   def self.setup
     yield self
   end
+
+  # timeout for ldap connections
+  mattr_accessor :timeout
+  @@timeout = 10
 end

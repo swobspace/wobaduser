@@ -1,3 +1,4 @@
+require 'timeout'
 module Wobaduser
   class LDAP
     attr_reader :ldap_options
@@ -12,7 +13,15 @@ module Wobaduser
 
     def connection(options ={})
       options.symbolize_keys!
-      @connection ||= Net::LDAP.new(ldap_options)
+      unless @connection
+        @connection = Net::LDAP.new(@ldap_options)
+        if options.fetch(:bind, true)
+          Timeout::timeout(Wobaduser.timeout) { 
+            @connection.bind
+          }
+        end
+      end
+      @connection
     end
 
   end
