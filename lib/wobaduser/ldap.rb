@@ -20,6 +20,10 @@ module Wobaduser
       result = connection.search(options)
     end
 
+    def error
+      (connection.get_operation_result.code == 0) ? nil : connection.get_operation_result
+    end
+
     protected
 
     def connection(options ={})
