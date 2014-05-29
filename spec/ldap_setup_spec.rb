@@ -28,5 +28,27 @@ describe 'LdapSetup' do
       end
     end
   end
+
+  context "with real environment" do
+    before(:each) do
+      @ldap_options = {
+        host: ENV['LDAP_HOST'], 
+        base: ENV['LDAP_BASE'],
+  	port: ENV['LDAP_PORT'],
+  	auth: {
+    	  method: :simple,
+    	  username: ENV['LDAP_USER'],
+    	  password: ENV['LDAP_PASSWD'],
+  	}
+      }
+      @ldap = Wobaduser::LDAP.new(ldap_options: @ldap_options)
+    end
+
+    it "Wobaduser::LDAP#connection is a kind of Net::LDAP" do
+      conn = @ldap.connection(bind: true)
+      conn.should be_a_kind_of Net::LDAP
+    end
+  end
+
 end
 
