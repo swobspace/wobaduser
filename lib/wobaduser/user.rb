@@ -12,7 +12,7 @@ module Wobaduser
     def all_groups
       filter = Net::LDAP::Filter.present("cn") & Net::LDAP::Filter.eq("objectClass", "group") &
          Net::LDAP::Filter.ex("member:1.2.840.113556.1.4.1941", @entry.dn)
-      @ldap.search(filter: filter, attributes: ['cn']).map(&:cn).flatten
+      @ldap.search(filter: filter, attributes: ['cn']).map(&:cn).flatten.map(&:as_utf8)
     end
   end
 end

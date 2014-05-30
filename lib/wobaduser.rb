@@ -2,6 +2,7 @@ require "wobaduser/version"
 require 'net/ldap'
 require 'active_support/core_ext/module'
 require 'active_support/core_ext/hash'
+require 'string_addons'
 
 module Wobaduser
   autoload :LDAP, 'wobaduser/ldap'
