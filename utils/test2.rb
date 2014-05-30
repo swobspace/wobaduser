@@ -29,6 +29,6 @@ ldap = Wobaduser::LDAP.new(ldap_options: LDAP_OPTIONS)
 user = Wobaduser::User.new(ldap, filter, attributes: ATTRIBUTES)
 # user = Wobaduser::User.new(ldap, filter)
 
-puts user.inspect
+puts user.cn
 
 puts user.all_groups.inspect
