@@ -86,7 +86,7 @@ module Wobaduser
 	      finals = @entry.send(val)
 	    end
 	    finals = finals.map{|v| v.is_a?(String) ? v.to_s.force_encoding('UTF-8') : v } if finals.is_a? Array   
-	    return finals
+	    return finals.compact
 	  else
 	    return []
 	  end
