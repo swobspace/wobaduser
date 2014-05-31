@@ -26,9 +26,26 @@ ATTRIBUTES = [ "cn", "dn", "sn", "givenname", "mail", "proxyAddresses" ]
 filter = Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])
 
 ldap = Wobaduser::LDAP.new(ldap_options: LDAP_OPTIONS)
-user = Wobaduser::User.new(ldap, filter, attributes: ATTRIBUTES)
-# user = Wobaduser::User.new(ldap, filter)
+# user = Wobaduser::User.new(ldap, filter, attributes: ATTRIBUTES)
+user = Wobaduser::User.new(ldap, filter)
 
-puts user.cn
+unless user.error.nil?
+  puts user.error.inspect
+  exit 1
+end
 
+if user.valid?
+  puts "#{ENV['USERPRINCIPALNAME']}"
+else
+  puts "#{ENV['USERPRINCIPALNAME']} is no valid userprincipalname"
+  exit 1
+end
+
+Wobaduser::User::ATTR_SV.each do |key,val|
+  puts "#{key} : #{user.send(key)}" unless user.send(key).blank?
+end
+Wobaduser::User::ATTR_MV.each do |key,val|
+  puts "#{key} : #{user.send(key)}" unless user.send(key).blank?
+end
+puts "---"
 puts user.all_groups.inspect
