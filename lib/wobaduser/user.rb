@@ -1,5 +1,54 @@
 module Wobaduser
   class User < Base
+
+    ########################################################################
+    # ATTR_SV is for single valued attributes only. Generated readers will
+    # convert the value to a string before returning or calling your Proc.
+
+    ATTR_SV = { 
+      # method name         ldap attribute
+      :username           => :userprincipalname,
+      :userprincipalname  => :userprincipalname,
+      :givenname          => :givenname,
+      :sn                 => :sn,
+      :cn                 => :cn,
+      :dn                 => :dn,
+      :displayname        => :displayname,
+      :mail               => :mail,
+      :title              => :title,
+      :telephonenumber    => :telephonenumber,
+      :facsimiletelephonenumber => :facsimiletelephonenumber,
+      :mobile             => :mobile,
+      :description        => :description,
+      :department         => :department,
+      :company            => :company,
+      :postalcode         => :postalcode,
+      :l                  => :l,
+      :streetaddress      => :streetaddress,
+      :samaccountname     => :samaccountname,
+      :primarygroupid     => :primarygroupid,
+      :guid               => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
+      :useraccountcontrol => :useraccountcontrol,
+      :is_valid? => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 0 } ],
+    }
+
+    # ATTR_MV is for multi-valued attributes. Generated readers will always 
+    # return an array.
+
+    ATTR_MV = { 
+      # method name         ldap attribute
+      :members     => :member,
+      :objectclass => :objectclass,
+      :groups      => [ :memberof,
+                      # Get the simplified name of first-level groups.
+                      # TODO: Handle escaped special characters
+                      Proc.new {|g| g.sub(/.*?CN=(.*?),.*/, '\1')} ],
+      # :mailaliases => [ :proxyAddresses, Proc.new{|p| p.lowercase.gsub(/\Asmtp:/,'')}]
+      :mailaliases => [ :proxyAddresses, Proc.new {|p| p.lowercase}],
+    }
+    #
+    ########################################################################
+
     def filter(valid = false)
       filter = Net::LDAP::Filter.eq('objectClass', 'user')
       if valid

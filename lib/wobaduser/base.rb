@@ -1,4 +1,4 @@
-# Copyright info:
+# additional copyright info:
 # the metaprogramming for generate_single_value_readers and
 # generate_multi_value_readers was published 2008 by Ernie Miller on
 # http://erniemiller.org/2008/04/04/simplified-active-directory-authentication/
@@ -7,45 +7,16 @@
 module Wobaduser
   class Base
 
-    ########################################################################
-    # ATTR_SV is for single valued attributes only. Generated readers will
-    # convert the value to a string before returning or calling your Proc.
-    ATTR_SV = { 
-      :username         => :userprincipalname,
-      :givenname        => :givenname,
-      :sn               => :sn,
-      :cn               => :cn,
-      :dn               => :dn,
-      :displayname      => :displayname,
-      :mail             => :mail,
-      :title            => :title,
-      :telephonenumber  => :telephonenumber,
-      :facsimiletelephonenumber => :facsimiletelephonenumber,
-      :mobile           => :mobile,
-      :description      => :description,
-      :department       => :department,
-      :company          => :company,
-      :postalcode       => :postalcode,
-      :l                => :l,
-      :streetaddress    => :streetaddress,
-      :samaccountname   => :samaccountname,
-      :primarygroupid   => :primarygroupid,
-      :guid             => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
-      :useraccountcontrol => :useraccountcontrol,
-      :is_valid? => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 0 } ],
-    }
-
-    # ATTR_MV is for multi-valued attributes. Generated readers will always 
-    # return an array.
-    ATTR_MV = { 
-      :members     => :member,
-      :objectclass => :objectclass,
-      :groups      => [ :memberof,
-                      # Get the simplified name of first-level groups.
-                      # TODO: Handle escaped special characters
-                      Proc.new {|g| g.sub(/.*?CN=(.*?),.*/, '\1')} ]
-    }
-    ########################################################################
+    ###################################################################
+    # ATTR_SV is for single valued attributes only. result is a string.
+    # ATTR_MV is for multi valued attributes. result is an array.
+    # Concrete values should be set in subclasses. See Wobaduser::User 
+    # for an example.
+    #
+    ATTR_SV={}
+    ATTR_MV={}
+    #
+    ###################################################################
 
     attr_reader :error, :entry
 
@@ -57,9 +28,11 @@ module Wobaduser
       @entry = ldap.search(options).first
       @error = ldap.error
       @ldap  = ldap
-      self.class.class_eval do
-        generate_single_value_readers
-        generate_multi_value_readers
+      unless @entry.nil?
+        self.class.class_eval do
+          generate_single_value_readers
+          generate_multi_value_readers
+        end
       end
     end
 
@@ -67,10 +40,18 @@ module Wobaduser
       Net::LDAP::Filter.present('objectClass')
     end
 
+    def valid?
+      @entry.kind_of? Net::LDAP::Entry
+    end
+
     protected
 
+    #
+    # method generator for single value attributes defined in ATTR_SV
+    #
     def self.generate_single_value_readers
-      ATTR_SV.each_pair do |k, v|
+      return if ATTR_SV.nil?
+      self::ATTR_SV.each_pair do |k, v|
 	val, block = Array(v)
 	define_method(k) do
 	  if @entry.attribute_names.include?(val)
@@ -90,8 +71,12 @@ module Wobaduser
       end
     end
 
+    #
+    # method generator for multi value attributes defined in ATTR_MV
+    #
     def self.generate_multi_value_readers
-      ATTR_MV.each_pair do |k, v|
+      return if ATTR_SV.nil?
+      self::ATTR_MV.each_pair do |k, v|
 	val, block = Array(v)
 	define_method(k) do
 	  if @entry.attribute_names.include?(val)
