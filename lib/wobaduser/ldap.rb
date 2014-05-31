@@ -27,12 +27,13 @@ module Wobaduser
     protected
 
     def connection(options ={})
-      return @connection unless @connection.nil?
+      return @connection if @connected
       options.symbolize_keys!
-      @connection = Net::LDAP.new(options.fetch(:ldap_options))
+      @connection ||= Net::LDAP.new(options.fetch(:ldap_options))
       if options.fetch(:bind, true)
         Timeout::timeout(Wobaduser.timeout) { 
           @connection.bind
+          @connected = true
         }
       end
       @connection
