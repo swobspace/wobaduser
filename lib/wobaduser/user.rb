@@ -5,7 +5,7 @@ module Wobaduser
     # ATTR_SV is for single valued attributes only. Generated readers will
     # convert the value to a string before returning or calling your Proc.
 
-    ATTR_SV = { 
+    ATTR_SV = {
       # method name         ldap attribute
       :username           => :userprincipalname,
       :userprincipalname  => :userprincipalname,
@@ -32,10 +32,10 @@ module Wobaduser
       :is_valid? => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 0 } ],
     }
 
-    # ATTR_MV is for multi-valued attributes. Generated readers will always 
+    # ATTR_MV is for multi-valued attributes. Generated readers will always
     # return an array.
 
-    ATTR_MV = { 
+    ATTR_MV = {
       # method name         ldap attribute
       :members     => :member,
       :objectclass => :objectclass,
@@ -44,7 +44,11 @@ module Wobaduser
                       # TODO: Handle escaped special characters
                       Proc.new {|g| g.sub(/.*?CN=(.*?),.*/, '\1')} ],
       # :mailaliases => [ :proxyAddresses, Proc.new{|p| p.lowercase.gsub(/\Asmtp:/,'')}]
-      :mailaliases => [ :proxyAddresses, Proc.new {|p| p.lowercase}],
+      :mailaliases => [ :proxyaddresses, Proc.new {|p|
+                                           p = p.downcase
+                                           next unless p=~ /\Asmtp:/
+                                           p.gsub(/\Asmtp:/, '')
+                                         }],
     }
     #
     ########################################################################
