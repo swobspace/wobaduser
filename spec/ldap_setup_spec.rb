@@ -9,22 +9,22 @@ describe 'LdapSetup' do
     end
 
     it "set ldap options as symbols" do
-      @ldap.ldap_options.should be_a_kind_of Hash
+      expect(@ldap.ldap_options).to be_a_kind_of Hash
       opts = @ldap.ldap_options
-      opts.should include(:host, :base, :port)
-      opts.should_not include("host", "base", "port")
+      expect(opts).to include(:host, :base, :port)
+      expect(opts).not_to include("host", "base", "port")
     end
   
     it "Wobaduser::LDAP should respond to #search" do
-      @ldap.should respond_to(:search)
+      expect(@ldap).to respond_to(:search)
     end
 
     it "connect to a nonexistent host should timeout" do
       Wobaduser.timeout = 2
       Timeout::timeout(Wobaduser.timeout + 1) do
-        lambda {
+        expect {
           Wobaduser::LDAP.new(ldap_options: @ldap_options, bind: true)
-        }.should raise_error(Timeout::Error)
+        }.to raise_error(Timeout::Error)
       end
     end
   end
@@ -45,15 +45,15 @@ describe 'LdapSetup' do
     end
 
     it "Wobaduser::LDAP should delegate search" do
-      @ldap.should respond_to(:search)
+      expect(@ldap).to respond_to(:search)
     end
 
     it "search should return Net::LDAP::Entries" do
       filter = Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])
       entry = @ldap.search(filter: filter).first
-      entry.should be_a_kind_of Net::LDAP::Entry
-      entry.should respond_to(:userprincipalname)
-      entry.userprincipalname.should include(ENV['USERPRINCIPALNAME'])
+      expect(entry).to be_a_kind_of Net::LDAP::Entry
+      expect(entry).to respond_to(:userprincipalname)
+      expect(entry.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
     end
   end
 

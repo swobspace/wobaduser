@@ -36,14 +36,14 @@ describe 'User' do
 
       it "valid user should respond to various attribute methods" do
 	user = Wobaduser::User.new(@ldap, @filter)
-	user.valid?.should be_true
-	user.should respond_to(:userprincipalname)
-	user.userprincipalname.should include(ENV['USERPRINCIPALNAME'])
+	expect(user.valid?).to be_truthy
+	expect(user).to respond_to(:userprincipalname)
+	expect(user.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
 	Wobaduser::User::ATTR_SV.each do |key,value|
-	  user.send(key).should be_a_kind_of String unless key == :is_valid?
+	  expect(user.send(key)).to be_a_kind_of String unless key == :is_valid?
 	end
 	Wobaduser::User::ATTR_MV.each do |key,value|
-	  user.send(key).should be_a_kind_of Array
+	  expect(user.send(key)).to be_a_kind_of Array
 	end
       end
     end
@@ -55,7 +55,7 @@ describe 'User' do
 
       it "valid user should respond to various attribute methods" do
 	user = Wobaduser::User.new(@ldap, @filter)
-	user.valid?.should be_false
+	expect(user.valid?).to be_falsey
       end
     end
   end
