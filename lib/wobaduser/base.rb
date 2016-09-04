@@ -20,20 +20,36 @@ module Wobaduser
 
     attr_reader :error, :entry
 
-    # Wobaduser::Base.new(Wobaduser::LDAP.new, filter: filter, options = other_ldap_options)
+    # Create an new Wobaduser object
+    # not to be intended to call directly, but possible. Better to use 
+    # Wobaduser::User.new or Wobaduser::Group.new. There are to modes:
+    # 1) use Wobaduser::LDAP + LDAP-Filter
+    # 2) use a retrieved LDAP entry, i.e. used in Wobaduser::Base.search
     # 
-    def initialize(ldap, filter, options = {})
+    # [+:entry+]	ldap entry
+    # [+:ldap+]		instance of Wobaduser::LDAP
+    # [+:filter+]	ldap filter (as string, *not* as Net::LDAP::Filter)
+    # [+:ldap_options+]	additional ldap options for search
+    # 
+    # :entry and (:ldap, :filter) are mutually exclusive
+    # 
+    def initialize(options = {})
       options.symbolize_keys!
-      options = options.merge(filter: build_filter(filter))
-      @entry = ldap.search(options).first
-      @error = ldap.error
-      @ldap  = ldap
-      unless @entry.nil?
+      keys = options.keys
+      if keys.include?(:entry) && (keys & [:ldap, :filter, :ldap_options]).any?
+        raise ArgumentError, ":entry and one of (:ldap, :filter, :ldap_options) are mutually exclusive!"
+      end
+      get_ldap_entry(options)
+      unless entry.nil?
         self.class.class_eval do
           generate_single_value_readers
           generate_multi_value_readers
         end
       end
+    end
+
+    def self.search(options = {})
+      search_ldap_entries(options).map {|entry| self.new(entry: entry)}
     end
 
     def self.filter
@@ -94,13 +110,31 @@ module Wobaduser
       end
     end
 
-    private
+    def self.search_ldap_entries(options)
+      ldap = options.fetch(:ldap)
+      filter = options.fetch(:filter)
+      ldap_options = options.fetch(:ldap_options, {}).
+                       merge(filter: build_filter(filter))
+      entries = ldap.search(ldap_options)
+      @error = ldap.error
+      entries
+    end
 
-    def build_filter(filter)
+    def self.build_filter(filter)
       unless filter.kind_of? Net::LDAP::Filter
         filter = Net::LDAP::Filter.construct(filter)
       end
       filter & self.filter
     end
+    private
+
+    def get_ldap_entry(options)
+      if options.keys.include?(:entry)
+        @entry = options.fetch(:entry)
+      else
+        @entry = Wobaduser::Base.search_ldap_entries(options).first
+      end
+    end
+
   end
 end
