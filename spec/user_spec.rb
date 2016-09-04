@@ -3,20 +3,17 @@ require 'spec_helper'
 
 describe 'User' do
   context "with dummy options" do
-    before(:each) do
-      @ldap_options = {"host" => '1.2.3.4', "base" => 'dc=example,dc=com', :port => 3268}
-      @ldap = Wobaduser::LDAP.new(ldap_options: @ldap_options, bind: false)
-    end
+    let(:ldap_options) {{"host" => '1.2.3.4', "base" => 'dc=example,dc=com', :port => 3268}}
+    let(:ldap) {Wobaduser::LDAP.new(ldap_options: ldap_options, bind: false)}
 
     it "breaks something" do
-      @filter = Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")
-      expect { user = Wobaduser::User.new(@ldap, @filter) }.to raise_error(RuntimeError)
+      filter = Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")
+      expect { user = Wobaduser::User.new(ldap, filter) }.to raise_error(RuntimeError)
     end
   end
 
   context "with real environment" do
-    before(:each) do
-      @ldap_options = {
+    let(:ldap_options) {{
         host: ENV['LDAP_HOST'], 
         base: ENV['LDAP_BASE'],
   	port: ENV['LDAP_PORT'],
@@ -25,17 +22,14 @@ describe 'User' do
     	  username: ENV['LDAP_USER'],
     	  password: ENV['LDAP_PASSWD'],
   	}
-      }
-      @ldap = Wobaduser::LDAP.new(ldap_options: @ldap_options, bind: true)
-    end
+      }}
+    let(:ldap) {Wobaduser::LDAP.new(ldap_options: ldap_options, bind: true)}
     
     context "and valid USERPRINCIPALNAME" do
-      before(:each) do
-	@filter = Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])
-      end
+      let(:filter) {Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])}
 
       it "valid user should respond to various attribute methods" do
-	user = Wobaduser::User.new(@ldap, @filter)
+	user = Wobaduser::User.new(ldap, filter)
 	expect(user.valid?).to be_truthy
 	expect(user).to respond_to(:userprincipalname)
 	expect(user.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
@@ -49,12 +43,10 @@ describe 'User' do
     end
 
     context "and invalid USERPRINCIPALNAME" do
-      before(:each) do
-	@filter = Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")
-      end
+      let(:filter) {Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")}
 
       it "valid user should respond to various attribute methods" do
-	user = Wobaduser::User.new(@ldap, @filter)
+	user = Wobaduser::User.new(ldap, filter)
 	expect(user.valid?).to be_falsey
       end
     end
