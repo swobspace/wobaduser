@@ -8,7 +8,7 @@ describe 'User' do
 
     it "breaks something" do
       filter = Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")
-      expect { user = Wobaduser::User.new(ldap, filter) }.to raise_error(RuntimeError)
+      expect { user = Wobaduser::User.new(ldap, filter) }.to raise_error(Net::LDAP::Error)
     end
   end
 
@@ -48,6 +48,15 @@ describe 'User' do
       it "valid user should respond to various attribute methods" do
 	user = Wobaduser::User.new(ldap, filter)
 	expect(user.valid?).to be_falsey
+      end
+    end
+
+    context "search for sn" do
+      let(:filter) {Net::LDAP::Filter.eq("sn", ENV['LDAP_SEARCH_SN'])}
+
+      it "valid user should respond to various attribute methods" do
+	user = Wobaduser::User.new(ldap, filter)
+	expect(user.valid?).to be_truthy
       end
     end
   end
