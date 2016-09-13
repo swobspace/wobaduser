@@ -27,10 +27,10 @@ filter = Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])
 
 ldap = Wobaduser::LDAP.new(ldap_options: LDAP_OPTIONS)
 # user = Wobaduser::User.new(ldap, filter, attributes: ATTRIBUTES)
-user = Wobaduser::User.new(ldap, filter)
+user = Wobaduser::User.new(ldap: ldap, filter: filter)
 
-unless user.error.nil?
-  puts user.error.inspect
+if user.errors.any?
+  puts user.errors.join("; ")
   exit 1
 end
 
@@ -48,4 +48,4 @@ Wobaduser::User::ATTR_MV.each do |key,val|
   puts "#{key} : #{user.send(key)}" unless user.send(key).blank?
 end
 puts "---"
-puts user.all_groups.inspect
+# puts user.all_groups.inspect

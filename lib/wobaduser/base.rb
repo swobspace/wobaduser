@@ -4,8 +4,11 @@
 # http://erniemiller.org/2008/04/04/simplified-active-directory-authentication/
 # with an excellent explanation.
 #
+require 'immutable-struct'
+
 module Wobaduser
   class Base
+    SearchResult = ImmutableStruct.new( :success?, :errors, :entries )
 
     ###################################################################
     # ATTR_SV is for single valued attributes only. result is a string.
@@ -18,7 +21,7 @@ module Wobaduser
     #
     ###################################################################
 
-    attr_reader :error, :entry
+    attr_reader :errors, :entry
 
     # Create an new Wobaduser object
     # not to be intended to call directly, but possible. Better to use 
@@ -39,6 +42,7 @@ module Wobaduser
       if keys.include?(:entry) && (keys & [:ldap, :filter, :ldap_options]).any?
         raise ArgumentError, ":entry and one of (:ldap, :filter, :ldap_options) are mutually exclusive!"
       end
+      reset_errors
       get_ldap_entry(options)
       unless entry.nil?
         self.class.class_eval do
@@ -49,7 +53,12 @@ module Wobaduser
     end
 
     def self.search(options = {})
-      search_ldap_entries(options).map {|entry| self.new(entry: entry)}
+      result = search_ldap_entries(options)
+      if result.success?
+        result.entries.map {|entry| self.new(entry: entry)}
+      else
+        []
+      end
     end
 
     def self.filter
@@ -116,8 +125,11 @@ module Wobaduser
       ldap_options = options.fetch(:ldap_options, {}).
                        merge(filter: build_filter(filter))
       entries = ldap.search(ldap_options)
-      @error = ldap.error
-      entries
+      if ldap.errors.any?
+        result = SearchResult.new(success: false, errors: ldap.errors, entries: [])
+      else
+        result = SearchResult.new(success: true, errors: [], entries: entries)
+      end
     end
 
     def self.build_filter(filter)
@@ -126,13 +138,31 @@ module Wobaduser
       end
       filter & self.filter
     end
-    private
+
+  protected
+
+    def add_error(message)
+      @errors << message
+    end
+
+    def reset_errors
+      @errors = []
+    end
+
+  private
 
     def get_ldap_entry(options)
       if options.keys.include?(:entry)
         @entry = options.fetch(:entry)
+        reset_errors
       else
-        @entry = Wobaduser::Base.search_ldap_entries(options).first
+        result = Wobaduser::Base.search_ldap_entries(options)
+        if result.success?
+          @entry = result.entries.first
+        else
+          add_error(result.errors.join(", "))
+          @entry = nil
+        end
       end
     end
 

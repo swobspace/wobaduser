@@ -3,8 +3,9 @@ require 'spec_helper'
 
 describe 'LdapSetup' do
   context "with dummy options" do
-   let(:ldap_options) {{ "host" => '1.2.3.4', "base" => 'dc=example,dc=com', :port => 3268}}
+   let(:ldap_options) {{ "host" => '127.0.0.1', "base" => 'dc=example,dc=com', :port => 3268}}
    let(:ldap) { Wobaduser::LDAP.new(ldap_options: ldap_options, bind: false) }
+   let(:filter) { Net::LDAP::Filter.eq("userprincipalname", "doesnotexist") }
 
     it "set ldap options as symbols" do
       expect(ldap.ldap_options).to be_a_kind_of Hash
@@ -13,17 +14,37 @@ describe 'LdapSetup' do
       expect(opts).not_to include("host", "base", "port")
     end
   
-    it "Wobaduser::LDAP should respond to #search" do
-      expect(ldap).to respond_to(:search)
+    it { expect(ldap).to respond_to(:search) }
+    it { expect(ldap).to respond_to(:errors) }
+    it { expect(ldap).not_to respond_to(:connection) }
+    it { expect(ldap).not_to respond_to(:connected?) }
+
+    it "ldap search doesn't raise an error" do
+      expect{ 
+        ldap.search(filter: filter) 
+      }.not_to raise_error
+    end
+
+    it "ldap search delivers some errors" do
+      ldap.search(filter: filter)
+      expect(ldap.errors.any?).to be_truthy
+    end
+    
+    it "connect to a existing host without ldap server should get connection refused" do
+      ldap = nil
+      Wobaduser.timeout = 2
+      expect {
+        ldap = Wobaduser::LDAP.new(ldap_options: ldap_options, bind: true)
+      }.not_to raise_error
+      expect(ldap.errors.any?).to be_truthy
+      expect(ldap.errors.join(" ")).to match /Connection refused/
     end
 
     it "connect to a nonexistent host should timeout" do
       Wobaduser.timeout = 2
-      Timeout::timeout(Wobaduser.timeout + 1) do
-        expect {
-          Wobaduser::LDAP.new(ldap_options: ldap_options, bind: true)
-        }.to raise_error(Timeout::Error)
-      end
+      ldap_options['host'] = '1.2.3.4'
+      ldap = Wobaduser::LDAP.new(ldap_options: ldap_options, bind: true)
+      expect(ldap.errors.join(" ")).to match /Timeout: could not bind to server/
     end
   end
 
@@ -47,6 +68,7 @@ describe 'LdapSetup' do
     it "search should return Net::LDAP::Entries" do
       filter = Net::LDAP::Filter.eq("userprincipalname", ENV['USERPRINCIPALNAME'])
       entry = ldap.search(filter: filter).first
+      expect(ldap.errors.any?).to be_falsey
       expect(entry).to be_a_kind_of Net::LDAP::Entry
       expect(entry).to respond_to(:userprincipalname)
       expect(entry.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
@@ -54,4 +76,3 @@ describe 'LdapSetup' do
   end
 
 end
-

@@ -3,7 +3,7 @@ require 'spec_helper'
 
 describe 'User' do
   context "with different options on #new" do
-    let(:ldap_options) {{"host" => '1.2.3.4', "base" => 'dc=example,dc=com', :port => 3268}}
+    let(:ldap_options) {{"host" => '127.0.0.1', "base" => 'dc=example,dc=com', :port => 3268}}
     let(:ldap)  { Wobaduser::LDAP.new(ldap_options: ldap_options) }
     let(:entry) { instance_double("Net::LDAP::Entry") }
     let(:filter) { Net::LDAP::Filter.eq("userprincipalname", "doesnotexist") }
@@ -14,10 +14,10 @@ describe 'User' do
       }.not_to raise_error
     end
 
-    it ":entry does not raise an ArgumentError" do
+    it ":ldap + :filter does not raise an ArgumentError" do
       expect {
         Wobaduser::User.new(ldap: ldap, filter: filter)
-      }.to raise_error(Net::LDAP::Error)
+      }.not_to raise_error
     end
 
     [:ldap, :filter, :ldap_options].each do |option|
@@ -30,13 +30,15 @@ describe 'User' do
   end
 
   context "with dummy options" do
-    let(:ldap_options) {{"host" => '1.2.3.4', "base" => 'dc=example,dc=com', :port => 3268}}
-    let(:ldap) {Wobaduser::LDAP.new(ldap_options: ldap_options, bind: false)}
+    let(:ldap_options) {{"host" => '127.0.0.1', "base" => 'dc=example,dc=com', :port => 3268}}
+    let(:ldap) { Wobaduser::LDAP.new(ldap_options: ldap_options, bind: false) }
+    let(:user) { Wobaduser::User.new(ldap: ldap, filter: filter) }
+    let(:filter) { Net::LDAP::Filter.eq("userprincipalname", "doesnotexist") }
 
-    it "breaks something" do
-      filter = Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")
-      expect { user = Wobaduser::User.new(ldap: ldap, filter: filter) }.to raise_error(Net::LDAP::Error)
-    end
+    it { expect(ldap.errors.any?).to be_falsey }
+
+    it { expect { user }.not_to raise_error }
+    it { expect(user.errors.any?).to be_truthy }
   end
 
   context "with real environment" do
