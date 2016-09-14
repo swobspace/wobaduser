@@ -81,11 +81,13 @@ describe 'User' do
     end
 
     describe "::search" do
-      let(:users) { Wobaduser::User.search(ldap: ldap, filter: filter) }
+      let(:entries) { Wobaduser::User.search(ldap: ldap, filter: filter) }
+      let(:users)   { entries.entries }
 
       context "search for sn" do
         let(:filter) {Net::LDAP::Filter.eq("sn", ENV['LDAP_SEARCH_SN'])}
 
+        it { expect(entries.success?).to be_truthy }
 	it { expect(users).to be_a_kind_of Array }
 	it { expect(users.map {|u| u.userprincipalname}).to include( 
 	     ENV['USERPRINCIPALNAME3'], ENV['USERPRINCIPALNAME2']) }
@@ -94,6 +96,7 @@ describe 'User' do
       context "search for givenname" do
         let(:filter) {Net::LDAP::Filter.eq("givenname", ENV['LDAP_SEARCH_GIVENNAME'])}
 
+        it { expect(entries.success?).to be_truthy }
 	it { expect(users).to be_a_kind_of Array }
 	it { expect(users.map {|u| u.userprincipalname}).to include( 
 	     ENV['USERPRINCIPALNAME3'], ENV['USERPRINCIPALNAME2']) }
@@ -102,9 +105,21 @@ describe 'User' do
       context "search for mail" do
         let(:filter) {Net::LDAP::Filter.eq("mail", ENV['LDAP_SEARCH_EMAIL'])}
 
+        it { expect(entries.success?).to be_truthy }
 	it { expect(users).to be_a_kind_of Array }
 	it { expect(users.map {|u| u.userprincipalname}).to include( 
 	     ENV['USERPRINCIPALNAME2']) }
+      end
+
+      context "with invalid filter" do
+        let(:filter) {"bla"}
+        let(:entries) { Wobaduser::User.search(ldap: ldap, filter: filter) }
+
+        it "raises a FilterSyntaxInvalidError" do
+          expect { 
+            entries.success?
+          }.to raise_error(Net::LDAP::FilterSyntaxInvalidError)
+        end
       end
     end
   end

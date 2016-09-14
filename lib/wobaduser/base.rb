@@ -53,11 +53,12 @@ module Wobaduser
     end
 
     def self.search(options = {})
-      result = search_ldap_entries(options)
-      if result.success?
-        result.entries.map {|entry| self.new(entry: entry)}
+      search = search_ldap_entries(options)
+      if search.success?
+        entries = search.entries.map {|entry| self.new(entry: entry)}
+        result = SearchResult.new(success: true, errors: [], entries: entries)
       else
-        []
+        result = SearchResult.new(success: false, errors: search.errors, entries: [])
       end
     end
 
