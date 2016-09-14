@@ -121,7 +121,7 @@ module Wobaduser
     end
 
     def self.search_ldap_entries(options)
-      ldap = options.fetch(:ldap)
+      ldap = options.fetch(:ldap) || raise "ldap connection not yet available"
       filter = options.fetch(:filter)
       ldap_options = options.fetch(:ldap_options, {}).
                        merge(filter: build_filter(filter))
