@@ -1,4 +1,4 @@
 module Wobaduser
-  VERSION = "0.1.0"
-  RELEASEDATE = "2016-09-13"
+  VERSION = "0.1.1"
+  RELEASEDATE = "2016-09-14"
 end
