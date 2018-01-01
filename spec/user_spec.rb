@@ -85,7 +85,7 @@ describe 'User' do
       let(:users)   { entries.entries }
 
       context "search for sn" do
-        let(:filter) {Net::LDAP::Filter.eq("sn", ENV['LDAP_SEARCH_SN'])}
+        let(:filter) {Net::LDAP::Filter.eq("sn", "#{ENV['LDAP_SEARCH_SN']}*")}
 
         it { expect(entries.success?).to be_truthy }
 	it { expect(users).to be_a_kind_of Array }
