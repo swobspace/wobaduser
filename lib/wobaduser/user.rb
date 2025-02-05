@@ -27,6 +27,7 @@ module Wobaduser
       :streetaddress      => :streetaddress,
       :samaccountname     => :samaccountname,
       :primarygroupid     => :primarygroupid,
+      :extensionattribute15     => :extensionattribute15,
       :guid               => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
       :useraccountcontrol => :useraccountcontrol,
       :is_valid? => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 0 } ],
