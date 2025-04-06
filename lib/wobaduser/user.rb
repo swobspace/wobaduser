@@ -72,7 +72,7 @@ module Wobaduser
     end
 
     def is_valid?
-      disabled == 0
+      !disabled
     end
   end
 end
