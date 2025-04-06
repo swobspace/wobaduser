@@ -63,7 +63,7 @@ describe 'User' do
 	expect(user).to respond_to(:userprincipalname)
 	expect(user.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
 	Wobaduser::User::ATTR_SV.each do |key,value|
-	  expect(user.send(key)).to be_a_kind_of String unless key == :is_valid?
+	  expect(user.send(key)).to be_a_kind_of String unless [:is_valid?, :disabled].include?(key)
 	end
 	Wobaduser::User::ATTR_MV.each do |key,value|
 	  expect(user.send(key)).to be_a_kind_of Array

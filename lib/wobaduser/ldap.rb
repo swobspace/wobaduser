@@ -75,6 +75,8 @@ module Wobaduser
           add_error("Timeout: could not bind to server within #{Wobaduser.timeout} seconds")
         rescue Net::LDAP::Error => e
           add_error(e.message)
+        rescue => e
+          add_error(e.message)
         end
       end
       @connection

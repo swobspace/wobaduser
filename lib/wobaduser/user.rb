@@ -30,7 +30,7 @@ module Wobaduser
       :extensionattribute15     => :extensionattribute15,
       :guid               => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
       :useraccountcontrol => :useraccountcontrol,
-      :is_valid? => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 0 } ],
+      :disabled => [ :useraccountcontrol, Proc.new {|c| c.to_i & 2} ],
     }
 
     # ATTR_MV is for multi-valued attributes. Generated readers will always
@@ -68,6 +68,10 @@ module Wobaduser
       filter = Net::LDAP::Filter.present("cn") & Net::LDAP::Filter.eq("objectClass", "group") &
          Net::LDAP::Filter.ex("member:1.2.840.113556.1.4.1941", @entry.dn)
       @ldap.search(filter: filter, attributes: ['cn']).map(&:cn).flatten.map(&:as_utf8)
+    end
+
+    def is_valid?
+      disabled == 0
     end
   end
 end
