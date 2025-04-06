@@ -60,6 +60,7 @@ describe 'User' do
       it "valid user should respond to various attribute methods" do
 	user = Wobaduser::User.new(ldap: ldap, filter: filter)
 	expect(user.valid?).to be_truthy
+	expect(user.disabled).to  eq(0)
 	expect(user).to respond_to(:userprincipalname)
 	expect(user.userprincipalname).to include(ENV['USERPRINCIPALNAME'])
 	Wobaduser::User::ATTR_SV.each do |key,value|
