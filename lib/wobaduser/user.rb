@@ -30,7 +30,7 @@ module Wobaduser
       :extensionattribute15     => :extensionattribute15,
       :guid               => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
       :useraccountcontrol => :useraccountcontrol,
-      :disabled => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) == 1 } ],
+      :disabled => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) != 0 } ],
 
     }
 
