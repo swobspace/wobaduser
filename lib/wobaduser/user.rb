@@ -40,6 +40,7 @@ module Wobaduser
       # method name         ldap attribute
       :members     => :member,
       :objectclass => :objectclass,
+      :memberof    => :memberof,
       :groups      => [ :memberof,
                       # Get the simplified name of first-level groups.
                       # TODO: Handle escaped special characters
