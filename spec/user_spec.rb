@@ -71,6 +71,16 @@ describe 'User' do
 	end
       end
     end
+ 
+    context "and real DISABLEDPRINCIPAL" do
+      let(:filter) {Net::LDAP::Filter.eq("userprincipalname", ENV['DISABLEDPRINCIPAL'])}
+
+      it "valid user should respond to various attribute methods" do
+	user = Wobaduser::User.new(ldap: ldap, filter: filter)
+	expect(user.disabled).to be_truthy
+	expect(user.is_valid?).to be_falsey
+      end
+    end
 
     context "and invalid USERPRINCIPALNAME" do
       let(:filter) {Net::LDAP::Filter.eq("userprincipalname", "doesnotexist")}
