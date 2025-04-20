@@ -1,5 +1,7 @@
 module Wobaduser
   class User < Base
+    AD_EPOCH      = 116_444_736_000_000_000
+    AD_MULTIPLIER = 10_000_000
 
     ########################################################################
     # ATTR_SV is for single valued attributes only. Generated readers will
@@ -31,6 +33,8 @@ module Wobaduser
       :guid               => [ :objectguid, Proc.new {|p| Base64.encode64(p).chomp } ],
       :useraccountcontrol => :useraccountcontrol,
       :disabled => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) != 0 } ],
+      :accountexpires     => :accountexpires,
+      :expirationdate     => [ :accountexpires, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ]
 
     }
 
@@ -72,7 +76,11 @@ module Wobaduser
     end
 
     def is_valid?
-      !disabled
+      !disabled && !expired?
+    end
+
+    def expired?
+      !expirationdate.to_date.nil? && (expirationdate.to_date < Date.current)
     end
   end
 end
