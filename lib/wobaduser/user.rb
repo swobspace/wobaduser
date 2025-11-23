@@ -26,6 +26,7 @@ module Wobaduser
       :company            => :company,
       :postalcode         => :postalcode,
       :l                  => :l,
+      :st                 => :st,
       :streetaddress      => :streetaddress,
       :samaccountname     => :samaccountname,
       :primarygroupid     => :primarygroupid,
@@ -34,8 +35,23 @@ module Wobaduser
       :useraccountcontrol => :useraccountcontrol,
       :disabled => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) != 0 } ],
       :accountexpires     => :accountexpires,
-      :expirationdate     => [ :accountexpires, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ]
-
+      :expirationdate     => [ :accountexpires, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ],
+      # german Telematik stuff
+      :personalentry      => :personalentry,
+      :domainid           => :domainid,
+      :entrytype          => :entrytype,
+      :providedby         => :providedby,
+      :telematikid        => :telematikid,
+      :specialization     => :specialization,
+      :datafromauthority  => :datafromauthority,
+      :countrycode        => :countrycode,
+      :kimdata            => :kimdata,
+      :street             => :street,
+      :holder             => :holder,
+      :professionoid      => :professionoid,
+      :komledata          => :komledata,
+      :changedatetime     => :changedatetime,
+      :uid                => :uid
     }
 
     # ATTR_MV is for multi-valued attributes. Generated readers will always
@@ -46,6 +62,8 @@ module Wobaduser
       :members     => :member,
       :objectclass => :objectclass,
       :memberof    => :memberof,
+      :mails       => :mail,
+      :certificates => :"usercertificate;binary",
       :groups      => [ :memberof,
                       # Get the simplified name of first-level groups.
                       # TODO: Handle escaped special characters

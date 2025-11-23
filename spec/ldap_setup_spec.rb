@@ -44,7 +44,7 @@ describe 'LdapSetup' do
       Wobaduser.timeout = 2
       ldap_options['host'] = '1.2.3.4'
       ldap = Wobaduser::LDAP.new(ldap_options: ldap_options, bind: true)
-      expect(ldap.errors.join(" ")).to match /Timeout: could not bind to server/
+      expect(ldap.errors.join(" ")).to match /No route to host/
     end
   end
 

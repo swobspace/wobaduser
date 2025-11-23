@@ -101,7 +101,7 @@ module Wobaduser
     # method generator for multi value attributes defined in ATTR_MV
     #
     def self.generate_multi_value_readers
-      return if ATTR_SV.nil?
+      return if ATTR_MV.nil?
       self::ATTR_MV.each_pair do |k, v|
 	val, block = Array(v)
 	define_method(k) do
