@@ -36,6 +36,9 @@ module Wobaduser
       :disabled => [ :useraccountcontrol, Proc.new {|c| (c.to_i & 2) != 0 } ],
       :accountexpires     => :accountexpires,
       :expirationdate     => [ :accountexpires, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ],
+      :lastlogon     => [ :lastlogon, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ],
+      :pwdlastset     => [ :pwdlastset, Proc.new {|t| Time.at((t.to_i - AD_EPOCH) / AD_MULTIPLIER).to_date } ],
+      :logoncount     => :logoncount,
       # german Telematik stuff
       :personalentry      => :personalentry,
       :domainid           => :domainid,
@@ -98,7 +101,15 @@ module Wobaduser
     end
 
     def expired?
-      !expirationdate.to_date.nil? && (expirationdate.to_date < Date.current)
+      (accountexpires.to_i > 0) && !expirationdate.to_date.nil? && (expirationdate.to_date < Date.current)
+    end
+
+    def password_changed
+      pwdlastset.to_date.present? && (pwdlastset >= 999.days.before(Date.current))
+    end
+
+    def recently_used
+      lastlogon.to_date.present? && (lastlogon >= 90.days.before(Date.current))
     end
   end
 end
