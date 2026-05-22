@@ -24,6 +24,7 @@ module Wobaduser
       :description        => :description,
       :department         => :department,
       :company            => :company,
+      :organization       => :organization,
       :postalcode         => :postalcode,
       :l                  => :l,
       :st                 => :st,
